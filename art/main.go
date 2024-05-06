@@ -1,52 +1,59 @@
 package main
 
 import (
-	"os"
-	"asciiart"
 	"bufio"
 	"fmt"
+	"os"
 	"strings"
+
+	"asciiart"
 )
 
 func main() {
-	file, _ := os.Open("standard.txt")
+	// Open the file
+	file, err := os.Open("standard.txt")
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
 
+	// Read lines from the file
 	scanner := bufio.NewScanner(file)
 	lines := []string{}
-
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
 
-	character := make([]string, 9)
-	result := [][]string{}
+	// Split lines into characters
+	characters := [][]string{}
 	for i := 0; i < len(lines); i += 9 {
 		end := i + 9
-		if end < len(lines) {
+		if end > len(lines) {
 			end = len(lines)
 		}
-		character = lines[i:end]
-		result = append(result, character)
+		characters = append(characters, lines[i:end])
 	}
 
-	if len(os.Args) < 2 || len(os.Args) > 2  {
+	// Check command-line arguments
+	if len(os.Args) != 2 {
 		fmt.Println("Expected usage: [program_name] [argument]")
 		return
 	}
-	
-	r := os.Args[1]
 
-	//Error handling for non-printable characters
-	for i := 0; i <= len(r)-1; i++ {
-		if (r[i] < 32 || r[i] > 126 ) && r[i] != 10 {//Skip \n (10) if present
-			fmt.Println("Cant print one or more characters")
+	// Check for non-printable characters in the input string
+	input := os.Args[1]
+	for i := 0; i < len(input); i++ {
+		if (input[i] < 32 || input[i] > 126) && input[i] != 10 {
+			fmt.Println("Cannot print one or more characters")
 			return
 		}
 	}
 
 	// Format ("\n") in input string
-	s := strings.Replace(r, "\\n", "\n", -1)
-	s = strings.Replace(s, "\\t", "    ", -1)
+	input = strings.Replace(input, "\\n", "\n", -1)
+	input = strings.Replace(input, "\\t", "    ", -1)
 
-	asciiart.HandleLn(s, result)
+	// Generate ASCII art
+	asciiart.HandleLn(input, characters)
 }
